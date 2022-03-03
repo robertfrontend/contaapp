@@ -4,13 +4,18 @@ import type { NextPage } from 'next'
 import Head from 'next/head'
 import Layout from '../components/Layout'
 import styled from 'styled-components'
+
+
 import axios from 'axios'
+import moment from 'moment'; 
 
 
 interface DataArticles {
   comment_text: string
   author: string
   created_at: string
+  created_at_i: string
+  date: string
 }
 
 const Home: NextPage = () => {
@@ -28,14 +33,36 @@ const Home: NextPage = () => {
 
 
   const getArticlesAll = async () => {
-    const defaultSearch: string = 'reactjs'
+    const defaultSearch: string = 'pascal'
 
     setLoader(true)
     try {
       const response = await axios.get(`${URL}=${defaultSearch}`)
       const data: [] = response.data.hits
 
-      setData(data)
+      let new_date: [] = []
+
+      data.map((dt: DataArticles) => {
+        let date = dt.created_at
+        const date_ = moment(`${date}`)
+        const diff = moment().diff(date_, 'days');
+        const diffHours = moment(date_, "YYYYMMDD").fromNow();
+        const minutes = moment(date, 'HH:mm').minutes();
+
+        const dateString =
+          diff === 0
+            ? `${minutes} minutes`
+            : diffHours
+
+        new_date.push({
+          ...dt,
+          date: dateString
+        })
+      })
+
+      console.log(new_date, 'new_date')
+
+      setData(new_date)
       setLoader(false)
     } catch (error) {
       setLoader(false)
@@ -91,7 +118,7 @@ const Home: NextPage = () => {
                             <div>
                               <p><b>Author:</b> <span style={{ color: '#3498db' }}>{data.author}</span> </p>
                               <p>
-                                <b>fecha:</b> {data.created_at}
+                                <b>fecha:</b> {data.date}
                               </p>
                             </div>
                           </Articled>
