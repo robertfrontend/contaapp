@@ -33,7 +33,7 @@ const Home: NextPage = () => {
 
 
   const getArticlesAll = async () => {
-    const defaultSearch: string = 'pascal'
+    const defaultSearch: string = 'reactjs'
 
     setLoader(true)
     try {
@@ -46,13 +46,22 @@ const Home: NextPage = () => {
         let date = dt.created_at
         const date_ = moment(`${date}`)
         const diff = moment().diff(date_, 'days');
-        const diffHours = moment(date_, "YYYYMMDD").fromNow();
-        const minutes = moment(date, 'HH:mm').minutes();
+        const diffHour = moment().diff(date_, 'hour');
 
-        const dateString =
-          diff === 0
-            ? `${minutes} minutes`
-            : diffHours
+        const days = moment(date_, "YYYYMMDD").fromNow();
+        const minutes = moment(date, 'HH:mm').minutes();
+        const hour = moment(date).endOf('day').fromNow()
+
+        let dateString
+        if (diffHour >= 24) {
+          dateString = `hace ${diff} dias`
+        } else {
+          if (diffHour <= 1) {
+            dateString = `hace ${minutes} minuto${minutes !== 1 && 's'}`
+          } else {
+            dateString = `hace ${diffHour} hora${diffHour !== 1 && 's'}`
+          }
+        }
 
         new_date.push({
           ...dt,
@@ -60,7 +69,6 @@ const Home: NextPage = () => {
         })
       })
 
-      console.log(new_date, 'new_date')
 
       setData(new_date)
       setLoader(false)
@@ -77,7 +85,38 @@ const Home: NextPage = () => {
       const response = await axios.get(`${URL}=${search}`)
       const data: [] = response.data.hits
 
-      setData(data)
+      let new_date: [] = []
+
+      data.map((dt: DataArticles) => {
+        let date = dt.created_at
+        const date_ = moment(`${date}`)
+        const diff = moment().diff(date_, 'days');
+        const diffHour = moment().diff(date_, 'hour');
+
+        const days = moment(date_, "YYYYMMDD").fromNow();
+        const minutes = moment(date, 'HH:mm').minutes();
+        const hour = moment(date).endOf('day').fromNow()
+
+
+        let dateString
+        if (diffHour >= 24) {
+          dateString = `hace ${diff} dias`
+        } else {
+          if (diffHour <= 1) {
+            dateString = `hace ${minutes} minuto${minutes !== 1 && 's'}`
+          } else {
+            dateString = `hace ${diffHour} hora${diffHour !== 1 && 's'}`
+          }
+        }
+
+        new_date.push({
+          ...dt,
+          date: dateString
+        })
+      })
+
+
+      setData(new_date)
       setLoader(false)
     } catch (error) {
       setLoader(false)
@@ -114,9 +153,9 @@ const Home: NextPage = () => {
                       <>
                         {data.map((data: DataArticles, index: number) => (
                           <Articled key={index}>
-                            <div dangerouslySetInnerHTML={{ __html: `<p>${data.comment_text}</p>` }} />
+                            <div dangerouslySetInnerHTML={{ __html: `<p>${data.comment_text || '⛔No Comment⛔'}</p>` }} />
                             <div>
-                              <p><b>Author:</b> <span style={{ color: '#3498db' }}>{data.author}</span> </p>
+                              <p><b>Author:</b> <span style={{ color: '#3498db' }}>{data.author || '⛔No author⛔'}</span> </p>
                               <p>
                                 <b>fecha:</b> {data.date}
                               </p>
